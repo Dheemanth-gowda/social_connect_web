@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SignupValidation } from "@/lib/validation";
-import Loader  from "@/components/shared/Loader";
+import Loader from "@/components/shared/Loader";
+import { Link } from "react-router-dom";
+import { createUserAccount } from "@/lib/appwrite/api";
 
 const SignUpForm = () => {
   const isLoading = false;
@@ -30,10 +32,10 @@ const SignUpForm = () => {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SignupValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof SignupValidation>)  => {
+    // Creating a function to create the user data.
+    const response  = await createUserAccount(values);
+    console.log(response);
   }
 
   return (
@@ -52,14 +54,19 @@ const SignUpForm = () => {
         >
           <FormField
             control={form.control}
-            name="username"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input type="text" className="shad-input" placeholder="" {...field} />
+                  <Input
+                    type="text"
+                    className="shad-input"
+                    placeholder=""
+                    {...field}
+                  />
                 </FormControl>
-          
+
                 <FormMessage />
               </FormItem>
             )}
@@ -71,9 +78,14 @@ const SignUpForm = () => {
               <FormItem>
                 <FormLabel>User Name</FormLabel>
                 <FormControl>
-                  <Input type="text" className="shad-input" placeholder="Dr. R D J" {...field} />
+                  <Input
+                    type="text"
+                    className="shad-input"
+                    placeholder="Dr. R D J"
+                    {...field}
+                  />
                 </FormControl>
-          
+
                 <FormMessage />
               </FormItem>
             )}
@@ -85,9 +97,14 @@ const SignUpForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="text" className="shad-input" placeholder="example@gmail.com" {...field} />
+                  <Input
+                    type="text"
+                    className="shad-input"
+                    placeholder="example@gmail.com"
+                    {...field}
+                  />
                 </FormControl>
-          
+
                 <FormMessage />
               </FormItem>
             )}
@@ -99,18 +116,36 @@ const SignUpForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" className="shad-input" placeholder="" {...field} />
+                  <Input
+                    type="password"
+                    className="shad-input"
+                    placeholder=""
+                    {...field}
+                  />
                 </FormControl>
-          
+
                 <FormMessage />
               </FormItem>
             )}
           />
           <Button className="shad-button_primary" type="submit">
-            {isLoading ? (<div className="flex-center gap-2">
-               <Loader /> Loading...
-            </div>) : "Sign Up"}
+            {isLoading ? (
+              <div className="flex-center gap-2">
+                <Loader /> Loading...
+              </div>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
+          <p className="text-small-regular text-light-2 text-center mt-2">
+            Already have an account ?
+            <Link
+              to="/sign-in"
+              className="text-primary-500 text-small-semibold ml-1 underline"
+            >
+              Log in
+            </Link>
+          </p>
         </form>
       </div>
     </Form>
