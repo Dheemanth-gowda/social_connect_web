@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
+import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
   FormControl,
@@ -16,10 +16,20 @@ import { Input } from "@/components/ui/input";
 import { SignupValidation } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
 import { Link } from "react-router-dom";
-import { createUserAccount } from "@/lib/appwrite/api";
+import {
+  useCreateUserAccount,
+  useSignInAccount,
+} from "@/lib/react-query/querriesAndMutation";
 
 const SignUpForm = () => {
-  const isLoading = false;
+  const { toast } = useToast();
+
+  const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
+    useCreateUserAccount();
+
+  const { mutateAsync: signInAccount, isPending: isSignInAccount } =
+    useSignInAccount();
+
   // 1. Define your form.
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
@@ -32,11 +42,27 @@ const SignUpForm = () => {
   });
 
   // 2. Define a submit handler.
-  const onSubmit = async (values: z.infer<typeof SignupValidation>)  => {
+  const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
     // Creating a function to create the user data.
-    const response  = await createUserAccount(values);
-    console.log(response);
-  }
+    const newUserCreated = await createUserAccount(values);
+    if (!newUserCreated) {
+      return toast({
+        title: "SignUp failed. Please try again.",
+      });
+    }
+    const session = await signInAccount({
+      email: values.email,
+      password: values.password,
+    });
+
+    if(!session){
+      return toast({
+        title:  "Sign In failed. Please try again."
+      })
+    }
+
+    
+  };
 
   return (
     <Form {...form}>
@@ -129,7 +155,7 @@ const SignUpForm = () => {
             )}
           />
           <Button className="shad-button_primary" type="submit">
-            {isLoading ? (
+            {isCreatingUser ? (
               <div className="flex-center gap-2">
                 <Loader /> Loading...
               </div>

@@ -1,6 +1,6 @@
-export type InewUser = {
+export type INewUser = {
     name: string,
     username: string,
-    password: string,
-    email: string
+    password?: string,
+    email: string,
 }
