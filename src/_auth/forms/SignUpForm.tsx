@@ -15,16 +15,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { SignupValidation } from "@/lib/validation";
 import Loader from "@/components/shared/Loader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   useCreateUserAccount,
   useSignInAccount,
 } from "@/lib/react-query/querriesAndMutation";
+import { useUserContext } from "@/contexts/AuthContext";
 
 const SignUpForm = () => {
+  const navigate = useNavigate();
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+
   const { toast } = useToast();
 
-  const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
+  const { mutateAsync: createUserAccount, isPending: isCreatingUserAccount } =
     useCreateUserAccount();
 
   const { mutateAsync: signInAccount, isPending: isSignInAccount } =
@@ -55,13 +59,20 @@ const SignUpForm = () => {
       password: values.password,
     });
 
-    if(!session){
+    if (!session) {
       return toast({
-        title:  "Sign In failed. Please try again."
-      })
+        title: "Sign In failed. Please try again.",
+      });
     }
 
-    
+    const isLoggedIn = await checkAuthUser();
+
+    if (isLoggedIn) {
+      form.reset();
+      navigate("/home");
+    }else{
+      toast({title: "Sign up failed. Please try again."})
+    }
   };
 
   return (
@@ -155,7 +166,7 @@ const SignUpForm = () => {
             )}
           />
           <Button className="shad-button_primary" type="submit">
-            {isCreatingUser ? (
+            {isCreatingUserAccount ? (
               <div className="flex-center gap-2">
                 <Loader /> Loading...
               </div>
