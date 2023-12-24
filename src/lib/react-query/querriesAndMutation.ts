@@ -1,21 +1,16 @@
-import {
-  useMutation,
-} from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createUserAccount, signInAccount } from "../appwrite/api";
 import { INewUser } from "@/types";
 
 export const useCreateUserAccount = () => {
   return useMutation({
-    mutationFn: (user: INewUser) => {
-      return createUserAccount(user);
-    },
+    mutationFn: (user: INewUser) => createUserAccount(user),
   });
 };
 
-export const useSignInAccount = () => {  
+export const useSignInAccount = () => {
   return useMutation({
-    mutationFn: (user: { email: string; password: string }) => {
-      return signInAccount(user);
-    },
+    mutationFn: (user: { email: string; password: string }) =>
+      signInAccount(user),
   });
 };

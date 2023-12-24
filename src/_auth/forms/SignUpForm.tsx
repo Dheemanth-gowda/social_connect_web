@@ -28,13 +28,12 @@ const SignUpForm = () => {
 
   const { toast } = useToast();
 
-  const { mutateAsync: createUserAccount, isPending: isCreatingUserAccount } =
+  // Queries
+  const { mutateAsync: createUserAccount, isPending: isCreatingAccount } =
     useCreateUserAccount();
-
-  const { mutateAsync: signInAccount, isPending: isSignInAccount } =
+  const { mutateAsync: signInAccount, isPending: isSigningInUser } =
     useSignInAccount();
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
     defaultValues: {
@@ -46,32 +45,42 @@ const SignUpForm = () => {
   });
 
   // 2. Define a submit handler.
-  const onSubmit = async (values: z.infer<typeof SignupValidation>) => {
-    // Creating a function to create the user data.
-    const newUserCreated = await createUserAccount(values);
-    if (!newUserCreated) {
-      return toast({
-        title: "SignUp failed. Please try again.",
+  const handleSignup = async (user: z.infer<typeof SignupValidation>) => {
+    try {
+      const newUser = await createUserAccount(user);
+
+      if (!newUser) {
+        toast({ title: "Sign up failed. Please try again." });
+
+        return;
+      }
+
+      const session = await signInAccount({
+        email: user.email,
+        password: user.password,
       });
-    }
-    const session = await signInAccount({
-      email: values.email,
-      password: values.password,
-    });
 
-    if (!session) {
-      return toast({
-        title: "Sign In failed. Please try again.",
-      });
-    }
+      if (!session) {
+        toast({ title: "Something went wrong. Please login your new account" });
 
-    const isLoggedIn = await checkAuthUser();
+        navigate("/sign-in");
 
-    if (isLoggedIn) {
-      form.reset();
-      navigate("/home");
-    }else{
-      toast({title: "Sign up failed. Please try again."})
+        return;
+      }
+
+      const isLoggedIn = await checkAuthUser();
+
+      if (isLoggedIn) {
+        form.reset();
+
+        navigate("/");
+      } else {
+        toast({ title: "Login failed. Please try again." });
+
+        return;
+      }
+    } catch (error) {
+      console.log({ error });
     }
   };
 
@@ -82,11 +91,11 @@ const SignUpForm = () => {
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
           Create a new account
         </h2>
-        <p className="text-light-3 small-medium md:base-regular">
+        <p className="text-light-3 small-medium md:base-regular mt-2">
           To use CodeCurse , please enter your details.
         </p>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(handleSignup)}
           className="flex flex-col gap-5 w-full mt-4"
         >
           <FormField
@@ -94,16 +103,10 @@ const SignUpForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="shad-form_label">Name</FormLabel>
                 <FormControl>
-                  <Input
-                    type="text"
-                    className="shad-input"
-                    placeholder=""
-                    {...field}
-                  />
+                  <Input type="text" className="shad-input" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -113,16 +116,15 @@ const SignUpForm = () => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>User Name</FormLabel>
+                <FormLabel className="shad-form_label">User Name</FormLabel>
                 <FormControl>
                   <Input
+                    placeholder="Dr. R D J"
                     type="text"
                     className="shad-input"
-                    placeholder="Dr. R D J"
                     {...field}
                   />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -132,41 +134,31 @@ const SignUpForm = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="shad-form_label">Email</FormLabel>
                 <FormControl>
-                  <Input
-                    type="text"
-                    className="shad-input"
-                    placeholder="example@gmail.com"
-                    {...field}
-                  />
+                  <Input type="text" className="shad-input" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="shad-form_label">Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    className="shad-input"
-                    placeholder=""
-                    {...field}
-                  />
+                  <Input type="password" className="shad-input" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button className="shad-button_primary" type="submit">
-            {isCreatingUserAccount ? (
+
+          <Button type="submit" className="shad-button_primary">
+            {isCreatingAccount || isSigningInUser || isUserLoading ? (
               <div className="flex-center gap-2">
                 <Loader /> Loading...
               </div>
@@ -186,8 +178,6 @@ const SignUpForm = () => {
         </form>
       </div>
     </Form>
-
-    // <div>SignUpForm</div>
   );
 };
 
