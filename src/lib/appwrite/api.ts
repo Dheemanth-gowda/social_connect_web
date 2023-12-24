@@ -1,7 +1,6 @@
 import { INewUser } from "@/types";
 import { ID, Query } from "appwrite";
 import { appwriteConfig, account, databases, avatars } from "./config";
-import { appwriteConfig, account, databases, avatars } from "./config";
 
 export async function createUserAccount(user: INewUser) {
   try {
@@ -21,7 +20,6 @@ export async function createUserAccount(user: INewUser) {
       email: newAccount.email,
       username: user.username,
       imageUrl: avatarUrl,
-      imageId: 'testing_random'
     });
 
     return newUser;
