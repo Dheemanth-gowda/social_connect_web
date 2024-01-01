@@ -11,6 +11,7 @@ const RootLayout = () => {
       <LeftSideBar/>
 
       <section className='flex flex-1 h-full'>
+      {/* Renders the child route's element, if there is one. */}
         <Outlet/>
       </section>
 
